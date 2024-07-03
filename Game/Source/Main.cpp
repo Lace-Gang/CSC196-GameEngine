@@ -1,11 +1,16 @@
 #include "Renderer.h" //put our own includes before system includes
 #include "Vector2.h"
+#include "Input.h"
+#include "Particle.h"
+#include "Random.h"
+#include "ETimer.h"
+#include "Color.h"
 
 #include <iostream>
 #include <SDL.h>
 #include <cstdlib>
 #include <vector>
-#include "Input.h"
+
 
 //#include "../../Engine/Source/Test.h"
 // "../" puts us into a previous folder (so once to get to game, and once to get to Solution
@@ -23,7 +28,7 @@ void drawVectors(Renderer renderer, std::vector<Vector2> points);
 
 int main(int argc, char* argv[])
 {
-	//Initializing important parts of game engine
+	//Initializing important parts of game engine/game
 	Renderer renderer;
 	renderer.Initialize();
 	renderer.CreateWindow("Game Engine", 800, 600);
@@ -31,15 +36,22 @@ int main(int argc, char* argv[])
 	Input input;
 	input.Initialize();
 
+	Time time;
 
-	Vector2 v1{ 400, 300 };
-	Vector2 v2{ 200, 100 };
+	Color color;
 
-	std::vector<Vector2> points;
-	//for (int i = 0; i < 100; i++)
-	//{
-		//points.push_back(Vector2{ rand() % 800, rand() % 600 });
-	//}
+
+	std::vector<Particle> particles;
+	for (int i = 0; i < 100; i++)
+	{
+		//particles.push_back(Particle{ {rand() % 800, rand() % 600}, {randomf(100,300), 0.0f}}); //even just putting "Particle" here is optional btw. you don't need to put Vector2 because it already knows that's what it will be, so just put the points
+	}
+
+
+	
+
+
+
 
 
 
@@ -52,6 +64,8 @@ int main(int argc, char* argv[])
 		//draw
 
 		//__INPUT__
+		time.Tick(); //tick is almost ALWAYS at the start of a while loop like this
+
 		input.Update();
 
 		if (input.GetKeyDown(SDL_SCANCODE_ESCAPE))
@@ -62,31 +76,28 @@ int main(int argc, char* argv[])
 
 		//__UPDATE__
 		Vector2 mousePosition = input.getMousePosition();
-		std::cout << mousePosition.x << " " << mousePosition.y << std::endl;
+		//std::cout << mousePosition.x << " " << mousePosition.y << std::endl;
 
-		if (input.GetMouseButtonDown(0) && !input.GetPrevMouseButtonDown(0))
+		
+		if (input.GetMouseButtonDown(0))
 		{
-			std::cout << "Mouse pressed\n";
-			points.push_back(mousePosition);
+			if (!input.GetPrevMouseButtonDown(0))
+			{
+				color = { (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255) };
+			}
+			//particles.push_back(Particle{ mousePosition, {randomf(-300,300), randomf(-300, 300)}}); //even just putting "Particle" here is optional btw. you don't need to put Vector2 because it already knows that's what it will be, so just put the points
+			particles.push_back(Particle{ mousePosition, {{randomf(-300,300)}, {randomf(-300, 300)}}, randomf(1, 5), color });
 		}
 
-		if (input.GetMouseButtonDown(0) && input.GetPrevMouseButtonDown(0))
+		
+
+
+		for (Particle& particle : particles)
 		{
-			float distance = (points.back() - mousePosition).Length();
-			if(distance > 5) points.push_back(mousePosition); //this can be done if an only if the operation in the if statement is only one line
+			particle.Update(time.GetDeltaTime());
+			if (particle.position.x > 800) particle.position.x = 0;
+			if (particle.position.x < 0) particle.position.x = 800;
 		}
-	 
-		
-		//[p, p, p, p]
-		//Vector2 speed{ 0.1f, -0.1f };
-		//for (Vector2& point : points)
-		//{
-			//point = point + speed;
-			//point = point + 0.002f;
-			//by the power of operator overloading!
-		//}
-		//THIS MAKES THE SHAPE MOVE!!! :D
-		
 
 
 
@@ -96,17 +107,13 @@ int main(int argc, char* argv[])
 		renderer.BeginFrame();
 		//	SDL_RenderClear(renderer);
 
-		//drawRandom(renderer);
-		//drawShape(renderer);
-		//drawVectors(renderer, points);
+		
 
-		//renderer.DrawLine(v1.x, v1.y, v2.x, v2.y);
-
-		//	// draw line
-		//renderer.SetColor(255, 255, 255, 0);
-		//renderer.DrawLine(0, 0, 800, 600);
-
-		drawVectors(renderer, points);
+		renderer.SetColor(255, 255, 255, 0);
+		for (Particle particle : particles)
+		{
+			particle.Draw(renderer);
+		}
 
 
 
@@ -173,3 +180,45 @@ void drawVectors(Renderer renderer, std::vector<Vector2> points)
 
 
 //Characters are single quotes, strings are double quotes
+
+
+//one frame = one update + one draw
+
+
+
+
+//things that ONLY work when points is present
+
+//place above main loop in initializing in the main function
+
+//std::vector<Vector2> points;
+	//for (int i = 0; i < 100; i++)
+	//{
+		//points.push_back(Vector2{ rand() % 800, rand() % 600 });
+	//}
+
+
+//place in update
+// 
+//if (input.GetMouseButtonDown(0) && !input.GetPrevMouseButtonDown(0))
+		//{
+			//std::cout << "Mouse pressed\n";
+			//points.push_back(mousePosition);
+		//}
+
+		//if (input.GetMouseButtonDown(0) && input.GetPrevMouseButtonDown(0))
+		//{
+			//float distance = (points.back() - mousePosition).Length();
+			//if(distance > 5) points.push_back(mousePosition); //this can be done if an only if the operation in the if statement is only one line
+		//}
+
+//place in draw
+//[p, p, p, p]
+		//Vector2 speed{ 0.1f, -0.1f };
+		//for (Vector2& point : points)
+		//{
+			//point = point + speed;
+			//point = point + 0.002f;
+			//by the power of operator overloading!
+		//}
+		//THIS MAKES THE SHAPE MOVE!!! :D
