@@ -16,6 +16,7 @@ void Particle::Draw(Renderer& renderer)
 	{
 		renderer.SetColor(color.red, color.green, color.blue, color.alpha);
 		renderer.DrawPoint(position.x, position.y);
+		renderer.DrawRect(position.x, position.y, 4.0f, 4.0f);
 	}
 }
 

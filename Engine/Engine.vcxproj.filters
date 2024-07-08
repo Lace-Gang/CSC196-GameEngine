@@ -36,6 +36,9 @@
     <ClInclude Include="Source\Color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\MathUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Renderer.cpp">

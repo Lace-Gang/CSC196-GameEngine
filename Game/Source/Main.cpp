@@ -5,11 +5,13 @@
 #include "Random.h"
 #include "ETimer.h"
 #include "Color.h"
+#include "MathUtils.h"
 
 #include <iostream>
 #include <SDL.h>
 #include <cstdlib>
 #include <vector>
+#include <fmod.hpp>
 
 
 //#include "../../Engine/Source/Test.h"
@@ -28,10 +30,20 @@ void drawVectors(Renderer renderer, std::vector<Vector2> points);
 
 int main(int argc, char* argv[])
 {
+
+	//std::cout << Math::Abs(-2);
 	//Initializing important parts of game engine/game
 	Renderer renderer;
 	renderer.Initialize();
 	renderer.CreateWindow("Game Engine", 800, 600);
+
+	// create audio system
+	FMOD::System* audio;
+	FMOD::System_Create(&audio);
+
+	void* extradriverdata = nullptr;
+	audio->init(32, FMOD_INIT_NORMAL, extradriverdata);
+
 
 	Input input;
 	input.Initialize();
@@ -40,18 +52,45 @@ int main(int argc, char* argv[])
 
 	Color color;
 
+	float offset = 0;
 
+	//particles
 	std::vector<Particle> particles;
 	for (int i = 0; i < 100; i++)
 	{
 		//particles.push_back(Particle{ {rand() % 800, rand() % 600}, {randomf(100,300), 0.0f}}); //even just putting "Particle" here is optional btw. you don't need to put Vector2 because it already knows that's what it will be, so just put the points
 	}
 
+	//sounds
+	FMOD::Sound* sound = nullptr;
+	//audio->createSound("test.wav", FMOD_DEFAULT, 0, &sound);
+
+	//audio->playSound(sound, 0, false, nullptr);
+
+	std::vector<FMOD::Sound*> sounds;
+	audio->createSound("bass.wav", FMOD_DEFAULT, 0, &sound); //0
+	sounds.push_back(sound);
+
+	audio->createSound("clap.wav", FMOD_DEFAULT, 0, &sound); //1
+	sounds.push_back(sound);
+
+	audio->createSound("close-hat.wav", FMOD_DEFAULT, 0, &sound); //2
+	sounds.push_back(sound);
+
+	audio->createSound("cowbell.wav", FMOD_DEFAULT, 0, &sound); //3
+	sounds.push_back(sound);
+
+	audio->createSound("open-hat.wav", FMOD_DEFAULT, 0, &sound); //4
+	sounds.push_back(sound);
+
+	audio->createSound("snare.wav", FMOD_DEFAULT, 0, &sound); //5
+	sounds.push_back(sound);
+
 
 	
 
 
-
+	
 
 
 
@@ -78,6 +117,8 @@ int main(int argc, char* argv[])
 		Vector2 mousePosition = input.getMousePosition();
 		//std::cout << mousePosition.x << " " << mousePosition.y << std::endl;
 
+		audio->update();
+
 		
 		if (input.GetMouseButtonDown(0))
 		{
@@ -85,13 +126,52 @@ int main(int argc, char* argv[])
 			{
 				color = { (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255) };
 			}
-			//particles.push_back(Particle{ mousePosition, {randomf(-300,300), randomf(-300, 300)}}); //even just putting "Particle" here is optional btw. you don't need to put Vector2 because it already knows that's what it will be, so just put the points
-			particles.push_back(Particle{ mousePosition, {{randomf(-300,300)}, {randomf(-300, 300)}}, randomf(1, 5), color });
+			//particles.push_back(Particle{ mousePosition, randomOnUnitCircle() * random(50, 300), randomf(-300, 300)}); //even just putting "Particle" here is optional btw. you don't need to put Vector2 because it already knows that's what it will be, so just put the points
+			//particles.push_back(Particle{ mousePosition, {randomOnUnitCircle() * random(50, 300), {randomf(-300, 300)}, randomf(1, 5), color });
+			particles.push_back(Particle{ mousePosition, randomOnUnitCircle() * random(50, 300), randomf(1, 5), color });
 		}
 
+
+		//sound updates
+		if (input.GetKeyDown(SDL_SCANCODE_A) && !input.GetPrevKeyDown(SDL_SCANCODE_A))
+		{
+			// play bass sound, vector elements can be accessed like an array with [#]
+			sound = sounds[0];
+			audio->playSound(sound, 0, false, nullptr);
+		}
+
+		if (input.GetKeyDown(SDL_SCANCODE_S) && !input.GetPrevKeyDown(SDL_SCANCODE_S))
+		{
+			sound = sounds[1];
+			audio->playSound(sound, 0, false, nullptr);
+		}
+
+		if (input.GetKeyDown(SDL_SCANCODE_D) && !input.GetPrevKeyDown(SDL_SCANCODE_D))
+		{
+			sound = sounds[2];
+			audio->playSound(sound, 0, false, nullptr);
+		}
+
+		if (input.GetKeyDown(SDL_SCANCODE_F) && !input.GetPrevKeyDown(SDL_SCANCODE_F))
+		{
+			sound = sounds[3];
+			audio->playSound(sound, 0, false, nullptr);
+		}
+
+		if (input.GetKeyDown(SDL_SCANCODE_J) && !input.GetPrevKeyDown(SDL_SCANCODE_J))
+		{
+			sound = sounds[4];
+			audio->playSound(sound, 0, false, nullptr);
+		}
+
+		if (input.GetKeyDown(SDL_SCANCODE_K) && !input.GetPrevKeyDown(SDL_SCANCODE_K))
+		{
+			sound = sounds[5];
+			audio->playSound(sound, 0, false, nullptr);
+		}
 		
 
-
+		//particle updates
 		for (Particle& particle : particles)
 		{
 			particle.Update(time.GetDeltaTime());
@@ -108,11 +188,22 @@ int main(int argc, char* argv[])
 		//	SDL_RenderClear(renderer);
 
 		
-
+		//draw particles
 		renderer.SetColor(255, 255, 255, 0);
 		for (Particle particle : particles)
 		{
 			particle.Draw(renderer);
+		}
+
+		renderer.SetColor(255, 255, 255, 0);
+		float radius = 30;
+		offset += (90 * time.GetDeltaTime());
+		for (float angle = 0; angle < 360; angle += 360 /30)
+		{
+			float x = Math::Cos(Math::DegToRad(angle + offset)) * Math::Sin((offset + angle)  * 0.05f) * radius; //try messing around with the stuff in here. You can get a LOT of cool stuff!
+			float y = Math::Sin(Math::DegToRad(angle + offset)) * Math::Sin((offset + angle) * 0.05f) * radius;
+
+			renderer.DrawRect(x + 400 , y + 300, 4.0f, 4.0f); //the 400 and 300 are so that it is in the middle of the screen instead of the top corner)
 		}
 
 
