@@ -3,9 +3,11 @@
 #include "Input.h"
 #include "Particle.h"
 #include "Random.h"
-#include "ETimer.h"
-#include "Color.h"
+#include "ETimer.h"/#include "Color.h"
 #include "MathUtils.h"
+//#include "Color3.h"
+#include "Model.h"
+#include "Transform.h"
 
 #include <iostream>
 #include <SDL.h>
@@ -87,8 +89,34 @@ int main(int argc, char* argv[])
 	sounds.push_back(sound);
 
 
-	
+	std::vector<Vector2> points;
+	points.push_back(Vector2{ 7, 0 });
+	points.push_back(Vector2{ 3, -2 });
+	points.push_back(Vector2{ 1.0f, -2.5f });
+	points.push_back(Vector2{ -1, -2 });
+	points.push_back(Vector2{ -5, 0 });
+	points.push_back(Vector2{ -8, -2 });
+	points.push_back(Vector2{ -8, 4 });
+	points.push_back(Vector2{ -5, 2 });
+	points.push_back(Vector2{ -2, 3 });
+	points.push_back(Vector2{ 0.0f, 3.1f });
+	points.push_back(Vector2{ 1, 3 });
+	points.push_back(Vector2{ 3.5f, 2.25f });
+	points.push_back(Vector2{ 5.0f, 1.5f });
+	points.push_back(Vector2{ 7, 0 });
+	Model model{ points, Color{0, 0.65f, 1.0f} };
 
+	Transform transform{ { renderer.GetWidth() >> 1, renderer.GetHeight() / 2 }, 0, 8}; //the last two perameters here are optional
+
+	//0001= 1
+	//0010 = 2
+	//0100 = 4
+	//1000 = 8
+	// >> 1 (shifts the binary over by one) (8 would go to 4, to 2, to 1)
+	//As used above in the Transform transform  to divide by 2 :)
+	// ">> 1>>"   :) 
+
+	
 
 	
 
@@ -113,6 +141,27 @@ int main(int argc, char* argv[])
 		}
 
 
+
+		float thrust = 0;
+
+		if (input.GetKeyDown(SDL_SCANCODE_UP))
+		{
+			thrust = 400;
+		}
+		//if (input.GetKeyDown(SDL_SCANCODE_DOWN)) thrust = -200;
+
+		if (input.GetKeyDown(SDL_SCANCODE_LEFT)) transform.rotation -= Math::DegToRad(100) * time.GetDeltaTime();
+		if (input.GetKeyDown(SDL_SCANCODE_RIGHT)) transform.rotation += Math::DegToRad(100) * time.GetDeltaTime();
+
+		
+		Vector2 velocity = Vector2{ thrust, 0.0f }.Rotate(transform.rotation);
+		transform.position += velocity * time.GetDeltaTime();
+		transform.position.x = Math::Wrap(transform.position.x, (float)renderer.GetWidth());
+		transform.position.y = Math::Wrap(transform.position.y, (float)renderer.GetHeight());
+
+		//transform.rotation = transform.rotation + time.GetDeltaTime(); //this doesn't work anymore
+		//rotation = velocity * angle();
+
 		//__UPDATE__
 		Vector2 mousePosition = input.getMousePosition();
 		//std::cout << mousePosition.x << " " << mousePosition.y << std::endl;
@@ -124,7 +173,8 @@ int main(int argc, char* argv[])
 		{
 			if (!input.GetPrevMouseButtonDown(0))
 			{
-				color = { (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255) };
+				//color = { (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255) };
+				color = { randomf(255), randomf(255), randomf(255), randomf(255) };
 			}
 			//particles.push_back(Particle{ mousePosition, randomOnUnitCircle() * random(50, 300), randomf(-300, 300)}); //even just putting "Particle" here is optional btw. you don't need to put Vector2 because it already knows that's what it will be, so just put the points
 			//particles.push_back(Particle{ mousePosition, {randomOnUnitCircle() * random(50, 300), {randomf(-300, 300)}, randomf(1, 5), color });
@@ -203,8 +253,12 @@ int main(int argc, char* argv[])
 			float x = Math::Cos(Math::DegToRad(angle + offset)) * Math::Sin((offset + angle)  * 0.05f) * radius; //try messing around with the stuff in here. You can get a LOT of cool stuff!
 			float y = Math::Sin(Math::DegToRad(angle + offset)) * Math::Sin((offset + angle) * 0.05f) * radius;
 
-			renderer.DrawRect(x + 400 , y + 300, 4.0f, 4.0f); //the 400 and 300 are so that it is in the middle of the screen instead of the top corner)
+			//renderer.DrawRect(x + 400 , y + 300, 4.0f, 4.0f); //the 400 and 300 are so that it is in the middle of the screen instead of the top corner)
 		}
+
+
+
+		model.Draw(renderer, transform);
 
 
 
@@ -313,3 +367,12 @@ void drawVectors(Renderer renderer, std::vector<Vector2> points)
 			//by the power of operator overloading!
 		//}
 		//THIS MAKES THE SHAPE MOVE!!! :D
+
+
+
+
+//the triangle
+//points.push_back(Vector2{ 5, 0 });
+	//points.push_back(Vector2{ -5, -5 });
+	//points.push_back(Vector2{ -5, 5 });
+	//points.push_back(Vector2{ 5, 0 });
