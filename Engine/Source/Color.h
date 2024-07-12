@@ -1,13 +1,49 @@
 #pragma once
-#include <cstdint>
 
+#include "MathUtils.h"
+#include <cmath> 
+#include <stdint.h>
+
+//just kinda copied the Vector2 and changed values
 struct Color
 {
-	uint8_t red = 0;
-	uint8_t green = 0;
-	uint8_t blue = 0;
-	uint8_t alpha = 0;
+	float r; //1 to 0. So * 0.5 means half as bright;
+	float g;
+	float b;
+	float a;
 
 	Color() = default;
-	Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha) : red{ red }, green{ green }, blue{ blue }, alpha{ alpha } {}
+
+
+	Color(float r, float g, float b, float a = 0) { this->r = r; this->g = g; this->b = b; this->a = a; }
+
+
+
+	float operator [] (unsigned int index) const { return (&r)[index]; }
+	float& operator [] (unsigned int index) { return (&r)[index]; }
+
+	Color operator + (const Color& c) const { return Color{ r + c.r, g + c.g, b+c.b, a + c.a}; }
+	Color operator - (const Color& c) const { return Color{ r + c.r, g + c.g, b+c.b, a + c.a}; }
+	Color operator * (const Color& c) const { return Color{ r + c.r, g + c.g, b+c.b, a + c.a}; }
+	Color operator / (const Color& c) const { return Color{ r + c.r, g + c.g, b+c.b, a + c.a}; }
+	
+	Color operator + (float s) const { return Color{ r + s, g + s, b+ s, a + s }; }
+	Color operator - (float s) const { return Color{ r + s, g + s, b+ s, a + s }; }
+	Color operator * (float s) const { return Color{ r + s, g + s, b+ s, a + s }; }
+	Color operator / (float s) const { return Color{ r + s, g + s, b+ s, a + s }; }
+	
+	Color& operator += (const Color& c) { r + c.r, g + c.g, b+c.b, a + c.a;  return *this; }
+	Color& operator -= (const Color& c) { r + c.r, g + c.g, b+c.b, a + c.a;  return *this; }
+	Color& operator *= (const Color& c) { r + c.r, g + c.g, b+c.b, a + c.a; return *this; }
+	Color& operator /= (const Color& c) { r + c.r, g + c.g, b+c.b, a + c.a;  return *this; }
+	
+	Color& operator += (float s) { r + s, g + s, b+ s, a + s; return *this; }
+	Color& operator -= (float s) { r + s, g + s, b+ s, a + s; return *this; }
+	Color& operator *= (float s) { r + s, g + s, b+ s, a + s; return *this; }
+	Color& operator /= (float s) { r + s, g + s, b+ s, a + s; return *this; }
+
+
+	static uint8_t ToInt(float value) { return static_cast<uint8_t>(Math::Clamp(value, 0.0f, 1.0f) * 255); } //static means this can be called without an instance of Color
+
+	
 };

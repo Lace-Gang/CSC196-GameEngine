@@ -1,25 +1,10 @@
-#include "Renderer.h" //put our own includes before system includes
-#include "Vector2.h"
-#include "Input.h"
-#include "Particle.h"
-#include "Random.h"
-#include "ETimer.h"/#include "Color.h"
-#include "MathUtils.h"
-//#include "Color3.h"
-#include "Model.h"
-#include "Transform.h"
+#include "Engine.h"
+
 
 #include <iostream>
-#include <SDL.h>
 #include <cstdlib>
 #include <vector>
-#include <fmod.hpp>
 
-
-//#include "../../Engine/Source/Test.h"
-// "../" puts us into a previous folder (so once to get to game, and once to get to Solution
-//had to change to "not using precompiled header" to make the second include work
-//but now that we've done and include directory, we can just do
 
 
 
@@ -32,23 +17,26 @@ void drawVectors(Renderer renderer, std::vector<Vector2> points);
 
 int main(int argc, char* argv[])
 {
+	g_engine.Initialize();
+
+
 
 	//std::cout << Math::Abs(-2);
-	//Initializing important parts of game engine/game
-	Renderer renderer;
-	renderer.Initialize();
-	renderer.CreateWindow("Game Engine", 800, 600);
+	//Initializing important parts of game engine/game (create systems)
+	
+	g_engine.GetAudio()->AddSound("bass.wav");
+	g_engine.GetAudio()->AddSound("clap.wav");
+	g_engine.GetAudio()->AddSound("close-hat.wav");
+	g_engine.GetAudio()->AddSound("cowbell.wav");
+	g_engine.GetAudio()->AddSound("open-hat.wav");
+	g_engine.GetAudio()->AddSound("snare.wav");
 
-	// create audio system
-	FMOD::System* audio;
-	FMOD::System_Create(&audio);
-
-	void* extradriverdata = nullptr;
-	audio->init(32, FMOD_INIT_NORMAL, extradriverdata);
+	//void* extradriverdata = nullptr;
+	//audio->init(32, FMOD_INIT_NORMAL, extradriverdata);
 
 
-	Input input;
-	input.Initialize();
+	//Input input;
+	//input.Initialize();
 
 	Time time;
 
@@ -63,30 +51,9 @@ int main(int argc, char* argv[])
 		//particles.push_back(Particle{ {rand() % 800, rand() % 600}, {randomf(100,300), 0.0f}}); //even just putting "Particle" here is optional btw. you don't need to put Vector2 because it already knows that's what it will be, so just put the points
 	}
 
-	//sounds
-	FMOD::Sound* sound = nullptr;
-	//audio->createSound("test.wav", FMOD_DEFAULT, 0, &sound);
 
-	//audio->playSound(sound, 0, false, nullptr);
 
-	std::vector<FMOD::Sound*> sounds;
-	audio->createSound("bass.wav", FMOD_DEFAULT, 0, &sound); //0
-	sounds.push_back(sound);
-
-	audio->createSound("clap.wav", FMOD_DEFAULT, 0, &sound); //1
-	sounds.push_back(sound);
-
-	audio->createSound("close-hat.wav", FMOD_DEFAULT, 0, &sound); //2
-	sounds.push_back(sound);
-
-	audio->createSound("cowbell.wav", FMOD_DEFAULT, 0, &sound); //3
-	sounds.push_back(sound);
-
-	audio->createSound("open-hat.wav", FMOD_DEFAULT, 0, &sound); //4
-	sounds.push_back(sound);
-
-	audio->createSound("snare.wav", FMOD_DEFAULT, 0, &sound); //5
-	sounds.push_back(sound);
+	
 
 
 	std::vector<Vector2> points;
@@ -106,12 +73,9 @@ int main(int argc, char* argv[])
 	points.push_back(Vector2{ 7, 0 });
 	Model model{ points, Color{0, 0.65f, 1.0f} };
 
-	Transform transform{ { renderer.GetWidth() >> 1, renderer.GetHeight() / 2 }, 0, 8}; //the last two perameters here are optional
+	Transform transform{ { g_engine.GetRenderer()->GetWidth() >> 1, g_engine.GetRenderer()->GetHeight() / 2}, 0, 8}; //the last two perameters here are optional
 
-	//0001= 1
-	//0010 = 2
-	//0100 = 4
-	//1000 = 8
+
 	// >> 1 (shifts the binary over by one) (8 would go to 4, to 2, to 1)
 	//As used above in the Transform transform  to divide by 2 :)
 	// ">> 1>>"   :) 
@@ -133,9 +97,9 @@ int main(int argc, char* argv[])
 		//__INPUT__
 		time.Tick(); //tick is almost ALWAYS at the start of a while loop like this
 
-		input.Update();
+		g_engine.GetInput()->Update();
 
-		if (input.GetKeyDown(SDL_SCANCODE_ESCAPE))
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_ESCAPE))
 		{
 			quit = true;
 		}
@@ -144,34 +108,34 @@ int main(int argc, char* argv[])
 
 		float thrust = 0;
 
-		if (input.GetKeyDown(SDL_SCANCODE_UP))
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_UP))
 		{
 			thrust = 400;
 		}
 		//if (input.GetKeyDown(SDL_SCANCODE_DOWN)) thrust = -200;
 
-		if (input.GetKeyDown(SDL_SCANCODE_LEFT)) transform.rotation -= Math::DegToRad(100) * time.GetDeltaTime();
-		if (input.GetKeyDown(SDL_SCANCODE_RIGHT)) transform.rotation += Math::DegToRad(100) * time.GetDeltaTime();
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_LEFT)) transform.rotation -= Math::DegToRad(100) * time.GetDeltaTime();
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_RIGHT)) transform.rotation += Math::DegToRad(100) * time.GetDeltaTime();
 
 		
 		Vector2 velocity = Vector2{ thrust, 0.0f }.Rotate(transform.rotation);
 		transform.position += velocity * time.GetDeltaTime();
-		transform.position.x = Math::Wrap(transform.position.x, (float)renderer.GetWidth());
-		transform.position.y = Math::Wrap(transform.position.y, (float)renderer.GetHeight());
+		transform.position.x = Math::Wrap(transform.position.x, (float)g_engine.GetRenderer()->GetWidth());
+		transform.position.y = Math::Wrap(transform.position.y, (float)g_engine.GetRenderer()->GetHeight());
 
 		//transform.rotation = transform.rotation + time.GetDeltaTime(); //this doesn't work anymore
 		//rotation = velocity * angle();
 
 		//__UPDATE__
-		Vector2 mousePosition = input.getMousePosition();
+		Vector2 mousePosition = g_engine.GetInput()->getMousePosition();
 		//std::cout << mousePosition.x << " " << mousePosition.y << std::endl;
 
-		audio->update();
+		g_engine.GetAudio()->Update();
 
 		
-		if (input.GetMouseButtonDown(0))
+		if (g_engine.GetInput()->GetMouseButtonDown(0))
 		{
-			if (!input.GetPrevMouseButtonDown(0))
+			if (!g_engine.GetInput()->GetPrevMouseButtonDown(0))
 			{
 				//color = { (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255), (uint8_t)random(255) };
 				color = { randomf(255), randomf(255), randomf(255), randomf(255) };
@@ -183,41 +147,36 @@ int main(int argc, char* argv[])
 
 
 		//sound updates
-		if (input.GetKeyDown(SDL_SCANCODE_A) && !input.GetPrevKeyDown(SDL_SCANCODE_A))
+		//go and make all of these single line if statements. it should work
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_A) && !g_engine.GetInput()->GetPrevKeyDown(SDL_SCANCODE_A))
 		{
-			// play bass sound, vector elements can be accessed like an array with [#]
-			sound = sounds[0];
-			audio->playSound(sound, 0, false, nullptr);
+					g_engine.GetAudio()->PlaySound("bass.wav");
 		}
 
-		if (input.GetKeyDown(SDL_SCANCODE_S) && !input.GetPrevKeyDown(SDL_SCANCODE_S))
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_S) && !g_engine.GetInput()->GetPrevKeyDown(SDL_SCANCODE_S))
 		{
-			sound = sounds[1];
-			audio->playSound(sound, 0, false, nullptr);
+			g_engine.GetAudio()->PlaySound("clap.wav");
 		}
 
-		if (input.GetKeyDown(SDL_SCANCODE_D) && !input.GetPrevKeyDown(SDL_SCANCODE_D))
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_D) && !g_engine.GetInput()->GetPrevKeyDown(SDL_SCANCODE_D))
 		{
-			sound = sounds[2];
-			audio->playSound(sound, 0, false, nullptr);
+			g_engine.GetAudio()->PlaySound("close-hat.wav");
 		}
 
-		if (input.GetKeyDown(SDL_SCANCODE_F) && !input.GetPrevKeyDown(SDL_SCANCODE_F))
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_F) && !g_engine.GetInput()->GetPrevKeyDown(SDL_SCANCODE_F))
 		{
-			sound = sounds[3];
-			audio->playSound(sound, 0, false, nullptr);
+			g_engine.GetAudio()->PlaySound("cowbell.wav");
 		}
 
-		if (input.GetKeyDown(SDL_SCANCODE_J) && !input.GetPrevKeyDown(SDL_SCANCODE_J))
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_J) && !g_engine.GetInput()->GetPrevKeyDown(SDL_SCANCODE_J))
 		{
-			sound = sounds[4];
-			audio->playSound(sound, 0, false, nullptr);
+			g_engine.GetAudio()->PlaySound("open-hat.wav");
 		}
 
-		if (input.GetKeyDown(SDL_SCANCODE_K) && !input.GetPrevKeyDown(SDL_SCANCODE_K))
+		if (g_engine.GetInput()->GetKeyDown(SDL_SCANCODE_K) && !g_engine.GetInput()->GetPrevKeyDown(SDL_SCANCODE_K))
 		{
-			sound = sounds[5];
-			audio->playSound(sound, 0, false, nullptr);
+		
+			g_engine.GetAudio()->PlaySound("snare.wav");
 		}
 		
 
@@ -233,19 +192,19 @@ int main(int argc, char* argv[])
 
 		//__DRAW__
 		//	// clear screen
-		renderer.SetColor(0, 0, 0, 0);
-		renderer.BeginFrame();
+		g_engine.GetRenderer()->SetColor(0, 0, 0, 0);
+		g_engine.GetRenderer()->BeginFrame();
 		//	SDL_RenderClear(renderer);
 
 		
 		//draw particles
-		renderer.SetColor(255, 255, 255, 0);
+		g_engine.GetRenderer()->SetColor(255, 255, 255, 0);
 		for (Particle particle : particles)
 		{
-			particle.Draw(renderer);
+			particle.Draw(*g_engine.GetRenderer());
 		}
 
-		renderer.SetColor(255, 255, 255, 0);
+		g_engine.GetRenderer()->SetColor(255, 255, 255, 0);
 		float radius = 30;
 		offset += (90 * time.GetDeltaTime());
 		for (float angle = 0; angle < 360; angle += 360 /30)
@@ -258,13 +217,13 @@ int main(int argc, char* argv[])
 
 
 
-		model.Draw(renderer, transform);
+		model.Draw(*g_engine.GetRenderer(), transform);
 
 
 
 		//	// show screen
 		//	SDL_RenderPresent(renderer);
-		renderer.EndFrame();
+		g_engine.GetRenderer()->EndFrame();
 	}
 
 	return 0;
@@ -277,16 +236,16 @@ void drawRandom(Renderer renderer)
 
 	for (int i = 0; i < 50; i++)
 	{
-		renderer.SetColor(255, 255, 255, 0);
-		renderer.SetColor(rand() % 256, rand() % 256, rand() % 256, 0); // create random color
+		g_engine.GetRenderer()->SetColor(255, 255, 255, 0);
+		g_engine.GetRenderer()->SetColor(rand() % 256, rand() % 256, rand() % 256, 0); // create random color
 
 		int p1_x = rand() % 800;
 		int p1_y = rand() % 600;
 		int p2_x = rand() % 800;
 		int p2_y = rand() % 600;
-		renderer.DrawPoint(p1_x, p1_y);
-		renderer.DrawPoint(p2_x, p2_y);
-		renderer.DrawLine(p1_x, p1_y, p2_x, p2_y);
+		g_engine.GetRenderer()->DrawPoint(p1_x, p1_y);
+		g_engine.GetRenderer()->DrawPoint(p2_x, p2_y);
+		g_engine.GetRenderer()->DrawLine(p1_x, p1_y, p2_x, p2_y);
 	}
 
 
@@ -294,14 +253,14 @@ void drawRandom(Renderer renderer)
 
 void drawShape(Renderer renderer)
 {
-	renderer.SetColor(255, 255, 255, 0);
-	renderer.DrawPoint(400, 300);
-	renderer.DrawPoint(300, 400);
-	renderer.DrawPoint(500, 550);
-
-	renderer.DrawLine(400, 300, 300, 400);
-	renderer.DrawLine(400, 300, 500, 550);
-	renderer.DrawLine(300, 400, 500, 550);
+	g_engine.GetRenderer()->SetColor(255, 255, 255, 0);
+	g_engine.GetRenderer()->DrawPoint(400, 300);
+	g_engine.GetRenderer()->DrawPoint(300, 400);
+	g_engine.GetRenderer()->DrawPoint(500, 550);
+	
+	g_engine.GetRenderer()->DrawLine(400, 300, 300, 400);
+	g_engine.GetRenderer()->DrawLine(400, 300, 500, 550);
+	g_engine.GetRenderer()->DrawLine(300, 400, 500, 550);
 }
 
 
