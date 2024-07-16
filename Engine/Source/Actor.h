@@ -5,6 +5,7 @@
 
 class Model; //another way to do a forward declaration
 class Renderer;
+class Scene;
 
 class Actor
 {
@@ -20,8 +21,12 @@ public:
 	void Draw(Renderer& renderer);
 
 	void SetDamping(float damping) { m_damping = damping; }
+	void SetLifespan(float lifespan) { m_lifespan = lifespan; }
+
+	const Transform& GetTransform() { return m_transform; }
 
 
+	friend class Scene; //we want our friends to have access to our protected variables/functions
 
 protected: //since it needs to be accessable to child classes
 	bool m_destroyed = false;
@@ -32,5 +37,6 @@ protected: //since it needs to be accessable to child classes
 	float m_damping{ 0 };
 
 	Model* m_model{ nullptr };
+	Scene* m_scene{ nullptr };
 
 };

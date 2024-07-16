@@ -49,7 +49,14 @@ struct Vector2
 
 	float Angle() const { return Math::Atan2(y, x); }
 	Vector2 Rotate(float radians) const;
+
+
+	//vector magnitude (length) is gotton via pythagrian theorem (there is a function for this)
+// v/||v|| is a normalized direction/vector/speed (so that direction does not increase speed too much)
+	Vector2 Normalized() const { return *this / Length(); }
 };
+
+
 
 //you can define things out here too
 inline Vector2 Vector2::Rotate(float radians) const

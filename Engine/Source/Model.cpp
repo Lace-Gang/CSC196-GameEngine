@@ -30,3 +30,11 @@ void Model::Draw(Renderer& renderer, const Transform transform)
 		renderer.DrawLine(p1.x, p1.y, p2.x, p2.y);
 	}
 }
+
+void Model::Reverse()
+{
+	for (Vector2 v : m_points)
+	{
+		v.x = v.x - (v.x * 2);
+	}
+}

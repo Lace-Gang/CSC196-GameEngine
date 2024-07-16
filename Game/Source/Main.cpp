@@ -1,6 +1,8 @@
 #include "Engine.h"
 #include "Player.h"
 #include "Scene.h"
+#include "Enemy.h"
+#include "Fish.h"
 
 
 #include <iostream>
@@ -45,6 +47,8 @@ int main(int argc, char* argv[])
 
 	float offset = 0;
 
+	float fishTimer = 4;
+
 	//particles
 	std::vector<Particle> particles;
 	for (int i = 0; i < 100; i++)
@@ -72,7 +76,13 @@ int main(int argc, char* argv[])
 	points.push_back(Vector2{ 3.5f, 2.25f });
 	points.push_back(Vector2{ 5.0f, 1.5f });
 	points.push_back(Vector2{ 7, 0 });
-	Model* model = new Model{ points, Color{0, 0.65f, 1.0f} };
+
+	
+
+	Model* model = new Model{ points, Color{0, 0.65f, 1.0f} }; //actor
+	Model* enemyModel = new Model{ points, Color{1, 0, 1.0f} };
+	Model* fishModel = new Model{ points, Color{0.1f, 0.1f, 1.0f} };
+
 
 	//Transform transform{ { g_engine.GetRenderer().GetWidth() >> 1, g_engine.GetRenderer().GetHeight() / 2}, 0, 8 }; //the last two perameters here are optional
 	// >> 1 (shifts the binary over by one) (8 would go to 4, to 2, to 1)
@@ -82,16 +92,24 @@ int main(int argc, char* argv[])
 
 	Scene* scene = new Scene();
 
-	for (int i = 0; i < 100; i++)
-	{
+
+	
 		Transform transform{ Vector2{ randomf(0, 800), randomf(0,600)}, 0, randomf(0,5) }; //the last two perameters here are optional
-		Player* player = new Player(200, transform, model);
+		Player* player = new Player(300, transform, model);
 		player->SetDamping(2.0f);
-
 		scene->AddActor(player);
-	}
+	
 
 
+
+
+		Enemy* enemy = new Enemy(400, Transform{ {300, 300 }, 0, 2 }, enemyModel); 
+		enemy->SetDamping(2.0f);
+		scene->AddActor(enemy);
+
+		//
+		auto examplef = 4.5f; //auto lets the computer imply what data type if there's enough reason to believe it can accurately assume
+		//
 	
 
 	
@@ -115,6 +133,8 @@ int main(int argc, char* argv[])
 		{
 			quit = true;
 		}
+
+		fishTimer += time.GetDeltaTime();
 
 
 
@@ -161,6 +181,16 @@ int main(int argc, char* argv[])
 			particle.Update(time.GetDeltaTime());
 			if (particle.position.x > 800) particle.position.x = 0;
 			if (particle.position.x < 0) particle.position.x = 800;
+		}
+
+		//fish spawning
+		if (fishTimer >= 5)
+		{
+			fishTimer = 0;
+
+			Transform fishTransform{ Vector2{ 0.0f, randomf(0,600)}, 0, randomf(0,5) };
+			Fish* fish = new Fish(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
+			scene->AddActor(fish);
 		}
 
 
