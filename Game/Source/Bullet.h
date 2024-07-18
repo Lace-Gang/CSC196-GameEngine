@@ -18,6 +18,7 @@ public:
 
 	//virtual declares an override
 	virtual void Update(float dt);
+	void OnCollision(Actor* actor);
 
 private:
 	float m_speed = 0;

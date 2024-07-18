@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include <string>
+#include <SDL_ttf.h>
 //header files contain declarations, but not definitions
 
 class Renderer
@@ -26,6 +27,7 @@ public:
 	int GetWidth() const { return m_width; }
 	int GetHeight() const { return m_height; }
 
+	friend class Text;
 private:
 	SDL_Window* m_window{ nullptr }; //"m_" means a member of the class. Not required, but good convention
 	SDL_Renderer* m_renderer{ nullptr };

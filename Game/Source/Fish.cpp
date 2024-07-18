@@ -7,3 +7,7 @@ void Fish::Update(float dt)
 
 	Actor::Update(dt);
 }
+
+void Fish::OnCollision(Actor* actor)
+{
+}

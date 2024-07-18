@@ -31,9 +31,26 @@ void Model::Draw(Renderer& renderer, const Transform transform)
 	}
 }
 
+float Model::GetRadius()
+{
+	float radius = 0;
+	for (Vector2 point : m_points)
+	{
+		float r = point.Length(); 
+		if (r > radius) {
+			radius = r;
+		}
+	}
+
+	return radius;
+}
+
+
+//this does not work
+//but if I make it a reference, it *should* work! So try and fix this later
 void Model::Reverse()
 {
-	for (Vector2 v : m_points)
+	for (Vector2& v : m_points)
 	{
 		v.x = v.x - (v.x * 2);
 	}

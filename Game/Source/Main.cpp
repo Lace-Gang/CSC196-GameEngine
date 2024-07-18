@@ -3,6 +3,8 @@
 #include "Scene.h"
 #include "Enemy.h"
 #include "Fish.h"
+#include "Font.h"
+#include "Text.h"
 
 
 #include <iostream>
@@ -27,12 +29,22 @@ int main(int argc, char* argv[])
 
 	//Initializing important parts of game engine/game (create systems)
 	
+	//loading sound
 	g_engine.GetAudio().AddSound("bass.wav");
 	g_engine.GetAudio().AddSound("clap.wav");
 	g_engine.GetAudio().AddSound("close-hat.wav");
 	g_engine.GetAudio().AddSound("cowbell.wav");
 	g_engine.GetAudio().AddSound("open-hat.wav");
 	g_engine.GetAudio().AddSound("snare.wav");
+
+	//loading fonts
+	Font* font = new Font();
+	font->Load("arcadeclassic.ttf", 20);
+	//font->Load("VCR_OSD_MONO.tff", 20);
+
+	//loading text
+	Text* text = new Text(font);
+	text->Create(g_engine.GetRenderer(), "Hello World", Color{ 1, 1, 1, 1 });
 
 	//void* extradriverdata = nullptr;
 	//audio->init(32, FMOD_INIT_NORMAL, extradriverdata);
@@ -48,6 +60,9 @@ int main(int argc, char* argv[])
 	float offset = 0;
 
 	float fishTimer = 4;
+	float spawnTimer = 2;
+
+	
 
 	//particles
 	std::vector<Particle> particles;
@@ -96,6 +111,7 @@ int main(int argc, char* argv[])
 	
 		Transform transform{ Vector2{ randomf(0, 800), randomf(0,600)}, 0, randomf(0,5) }; //the last two perameters here are optional
 		Player* player = new Player(300, transform, model);
+		player->SetTag("Player");
 		player->SetDamping(2.0f);
 		scene->AddActor(player);
 	
@@ -104,6 +120,7 @@ int main(int argc, char* argv[])
 
 
 		Enemy* enemy = new Enemy(400, Transform{ {300, 300 }, 0, 2 }, enemyModel); 
+		enemy->SetTag("Enemy");
 		enemy->SetDamping(2.0f);
 		scene->AddActor(enemy);
 
@@ -113,6 +130,8 @@ int main(int argc, char* argv[])
 	
 
 	
+		
+
 
 
 
@@ -190,6 +209,7 @@ int main(int argc, char* argv[])
 
 			Transform fishTransform{ Vector2{ 0.0f, randomf(0,600)}, 0, randomf(0,5) };
 			Fish* fish = new Fish(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
+			fish->SetTag("Fish");
 			scene->AddActor(fish);
 		}
 
@@ -221,6 +241,7 @@ int main(int argc, char* argv[])
 
 
 		scene->Draw(g_engine.GetRenderer());
+		text->Draw(g_engine.GetRenderer(), 40, 40);
 
 
 

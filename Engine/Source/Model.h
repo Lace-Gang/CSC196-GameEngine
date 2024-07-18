@@ -23,6 +23,9 @@ public:
 	void Draw(Renderer& renderer, const Vector2& position, float angle, float scale);
 	void Draw(Renderer& renderer, const Transform transform);
 
+	float GetRadius();
+
+	//this does not work
 	void Reverse();
 
 private:
