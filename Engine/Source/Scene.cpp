@@ -29,12 +29,14 @@ void Scene::Update(float dt)
 	//It moves the things it finds to the back of the list ig? Or something?
 	//Just . . . look up how these work later /lh
 	//ESPECIALLY if you want to try to USE this
-	m_actors.erase(std::remove_if(m_actors.begin(), m_actors.end(), [](Actor* actor) { return actor->m_destroyed; }), m_actors.end());
+	//m_actors.erase(std::remove_if(m_actors.begin(), m_actors.end(), [](Actor* actor) { return actor->m_destroyed; }), m_actors.end()); (this is necessary in 2014 version of C++
 	// The std::remove_if algorithm reorders the elements in the range [m_actors.begin(), m_actors.end()]
    // such that the elements that satisfy the predicate (i.e., those that should be removed) are moved
    // to the end of the range. The algorithm returns an iterator to the beginning of the "removed" range,
    // which is the new logical end of the container.
 
+	//this next line can be done in the 2022 verson of c++
+	std::erase_if(m_actors, [](Actor* actor) { return actor->m_destroyed; });
 
 
 	//collision

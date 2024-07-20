@@ -1,0 +1,28 @@
+#pragma once
+
+class Engine; //remember, this is fine when it's just a pointer
+class Renderer;
+class Scene;
+
+class Game
+{
+public:
+	Game() = default;
+	Game(Engine* engine) : m_engine{ engine } {}
+
+	virtual bool Initialize() = 0;
+	virtual void Shutdown() = 0;
+
+	virtual void Update(float dt) = 0;
+	virtual void Draw(Renderer& renderer) = 0;
+
+	int GetScore()const { return m_score; }
+	void AddPoints(int points) { m_score += points; }
+
+
+protected:
+	int m_score = 0;
+	Scene* m_scene{ nullptr };
+
+	Engine* m_engine{ nullptr };
+};

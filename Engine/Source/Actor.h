@@ -30,6 +30,8 @@ public:
 	void SetTag(const std::string& tag) { m_tag = tag; }
 	const std::string& GetTag() { return m_tag; }
 
+	bool& GetDestroyed() { return m_destroyed; }
+
 	//"On"[thing] is the typical naming convention for event things such as this
 	virtual void OnCollision(Actor* actor) = 0; //=0 makes this a pure virtual function, which makews Actor and abstract class :)   (so it can never be created)
 

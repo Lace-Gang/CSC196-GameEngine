@@ -2,6 +2,8 @@
 #include "Engine.h"
 #include "Bullet.h"
 #include "Scene.h"
+#include "Font.h"
+#include "Text.h"
 
 #include<iostream>
 
@@ -45,6 +47,9 @@ void Player::Update(float dt)
 	}
 
 
+
+
+
 	Actor :: Update(dt);
 
 
@@ -59,5 +64,19 @@ void Player::OnCollision(Actor* actor)
 		m_destroyed = true;
 	}
 
+	if (actor->GetTag() == "Fish")
+	{
+		if (actor->GetTransform().scale > m_transform.scale)
+		{
+			m_destroyed = true;
+		}
+		
+		if (actor->GetTransform().scale <= m_transform.scale)
+		{
+			m_transform.scale += (actor->GetTransform().scale / 2);
+			actor->GetDestroyed() = true;
+		}
+			
+	}
 	
 }

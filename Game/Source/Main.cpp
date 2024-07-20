@@ -5,6 +5,8 @@
 #include "Fish.h"
 #include "Font.h"
 #include "Text.h"
+#include "GameData.h"
+#include "FishGame.h"
 
 
 #include <iostream>
@@ -25,6 +27,38 @@ int main(int argc, char* argv[])
 {
 	g_engine.Initialize();
 
+	FishGame* game = new FishGame(&g_engine);
+	game->Initialize();
+
+	while (!g_engine.IsQuit())
+	{
+
+		//____INPUT____
+
+		g_engine.Update();
+		game->Update(g_engine.GetTime().GetDeltaTime());
+
+
+		//____DRAW____
+
+
+		//	// clear screen
+		g_engine.GetRenderer().SetColor(0, 0, 0, 0);
+		g_engine.GetRenderer().BeginFrame();
+
+		game->Draw(g_engine.GetRenderer());
+
+		g_engine.GetRenderer().EndFrame();
+
+
+
+	}
+
+	return 0;
+}
+
+/*
+
 
 
 	//Initializing important parts of game engine/game (create systems)
@@ -40,7 +74,7 @@ int main(int argc, char* argv[])
 	//loading fonts
 	Font* font = new Font();
 	font->Load("arcadeclassic.ttf", 20);
-	//font->Load("VCR_OSD_MONO.tff", 20);
+	//font->Load("vcr_osd_mono.tff", 20); this tff file seems to be incompatible 
 
 	//loading text
 	Text* text = new Text(font);
@@ -53,8 +87,6 @@ int main(int argc, char* argv[])
 	//Input input;
 	
 
-	Time time;
-
 	Color color;
 
 	float offset = 0;
@@ -62,41 +94,37 @@ int main(int argc, char* argv[])
 	float fishTimer = 4;
 	float spawnTimer = 2;
 
+
+
+
 	
 
 	//particles
 	std::vector<Particle> particles;
-	for (int i = 0; i < 100; i++)
-	{
-		//particles.push_back(Particle{ {rand() % 800, rand() % 600}, {randomf(100,300), 0.0f}}); //even just putting "Particle" here is optional btw. you don't need to put Vector2 because it already knows that's what it will be, so just put the points
-	}
-
-
-
 	
 
 
-	std::vector<Vector2> points;
-	points.push_back(Vector2{ 7, 0 });
-	points.push_back(Vector2{ 3, -2 });
-	points.push_back(Vector2{ 1.0f, -2.5f });
-	points.push_back(Vector2{ -1, -2 });
-	points.push_back(Vector2{ -5, 0 });
-	points.push_back(Vector2{ -8, -2 });
-	points.push_back(Vector2{ -8, 4 });
-	points.push_back(Vector2{ -5, 2 });
-	points.push_back(Vector2{ -2, 3 });
-	points.push_back(Vector2{ 0.0f, 3.1f });
-	points.push_back(Vector2{ 1, 3 });
-	points.push_back(Vector2{ 3.5f, 2.25f });
-	points.push_back(Vector2{ 5.0f, 1.5f });
-	points.push_back(Vector2{ 7, 0 });
+	//std::vector<Vector2> points;
+	//points.push_back(Vector2{ 7, 0 });
+	//points.push_back(Vector2{ 3, -2 });
+	//points.push_back(Vector2{ 1.0f, -2.5f });
+	//points.push_back(Vector2{ -1, -2 });
+	//points.push_back(Vector2{ -5, 0 });
+	//points.push_back(Vector2{ -8, -2 });
+	//points.push_back(Vector2{ -8, 4 });
+	//points.push_back(Vector2{ -5, 2 });
+	//points.push_back(Vector2{ -2, 3 });
+	//points.push_back(Vector2{ 0.0f, 3.1f });
+	//points.push_back(Vector2{ 1, 3 });
+	//points.push_back(Vector2{ 3.5f, 2.25f });
+	//points.push_back(Vector2{ 5.0f, 1.5f });
+	//points.push_back(Vector2{ 7, 0 });
 
 	
 
-	Model* model = new Model{ points, Color{0, 0.65f, 1.0f} }; //actor
-	Model* enemyModel = new Model{ points, Color{1, 0, 1.0f} };
-	Model* fishModel = new Model{ points, Color{0.1f, 0.1f, 1.0f} };
+	Model* model = new Model{ GameData::shipPoints, Color{0, 0.65f, 1.0f} }; //actor
+	Model* enemyModel = new Model{ GameData::shipPoints, Color{1, 0, 1.0f} };
+	Model* fishModel = new Model{ GameData::shipPoints, Color{0.1f, 0.1f, 1.0f} };
 
 
 	//Transform transform{ { g_engine.GetRenderer().GetWidth() >> 1, g_engine.GetRenderer().GetHeight() / 2}, 0, 8 }; //the last two perameters here are optional
@@ -136,24 +164,23 @@ int main(int argc, char* argv[])
 
 
 	//main loop
-	bool quit = false;
-	while (!quit)
+	while (!g_engine.IsQuit())
 	{
 		//input
 		//updat
 		//draw
 
-		//__INPUT__
-		time.Tick(); //tick is almost ALWAYS at the start of a while loop like this
 
-		g_engine.GetInput().Update();//THIS MIGHT BE WRONG
 
-		if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_ESCAPE))
-		{
-			quit = true;
-		}
+		//____INPUT____
+		
+		//time.Tick(); //tick is almost ALWAYS at the start of a while loop like this
 
-		fishTimer += time.GetDeltaTime();
+		g_engine.Update();
+
+
+
+		fishTimer += g_engine.GetTime().GetDeltaTime();
 
 
 
@@ -161,10 +188,11 @@ int main(int argc, char* argv[])
 
 		
 
-		//__UPDATE__
+		//____UPDATE____
+
 		Vector2 mousePosition = g_engine.GetInput().getMousePosition();
 
-		scene->Update(time.GetDeltaTime());
+		scene->Update(g_engine.GetTime().GetDeltaTime());
 
 		g_engine.GetAudio().Update();
 
@@ -197,7 +225,7 @@ int main(int argc, char* argv[])
 		//particle updates
 		for (Particle& particle : particles)
 		{
-			particle.Update(time.GetDeltaTime());
+			particle.Update(g_engine.GetTime().GetDeltaTime());
 			if (particle.position.x > 800) particle.position.x = 0;
 			if (particle.position.x < 0) particle.position.x = 800;
 		}
@@ -215,7 +243,12 @@ int main(int argc, char* argv[])
 
 
 
-		//__DRAW__
+
+
+
+		//____DRAW____
+		
+		
 		//	// clear screen
 		g_engine.GetRenderer().SetColor(0, 0, 0, 0);
 		g_engine.GetRenderer().BeginFrame();
@@ -231,7 +264,7 @@ int main(int argc, char* argv[])
 
 		g_engine.GetRenderer().SetColor(255, 255, 255, 0);
 		float radius = 30;
-		offset += (90 * time.GetDeltaTime());
+		offset += (90 * g_engine.GetTime().GetDeltaTime());
 		for (float angle = 0; angle < 360; angle += 360 /30)
 		{
 			float x = Math::Cos(Math::DegToRad(angle + offset)) * Math::Sin((offset + angle)  * 0.05f) * radius; 
@@ -311,3 +344,5 @@ void drawVectors(Renderer renderer, std::vector<Vector2> points)
 
 
 //one frame = one update + one draw
+
+*/
