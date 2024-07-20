@@ -13,9 +13,11 @@ public:
 	Player(const Transform& transform, Model* model) :
 		Actor{ transform, model }
 	{}
-	Player(float speed, const Transform& transform, Model* model) :
+	Player(float speed, const Transform& transform, Model* model, int* score, bool* isAlive) :
 		Actor{ transform, model }, 
-		m_speed{ speed }
+		m_speed{ speed },
+		m_score{ score },
+		m_isAlive{isAlive}
 	{}
 
 
@@ -26,5 +28,8 @@ public:
 private:
 	float m_speed = 0;
 	float m_fireTimer = 0;
+
+	int* m_score = 0;
+	bool* m_isAlive{ nullptr };
 	
 };

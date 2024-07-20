@@ -17,9 +17,9 @@
 
 
 
-void drawRandom(Renderer renderer);
-void drawShape(Renderer renderer);
-void drawVectors(Renderer renderer, std::vector<Vector2> points);
+//void drawRandom(Renderer renderer);
+//void drawShape(Renderer renderer);
+//void drawVectors(Renderer renderer, std::vector<Vector2> points);
 
 
 

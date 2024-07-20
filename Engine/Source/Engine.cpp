@@ -11,7 +11,8 @@ bool Engine::Initialize()
 
     //(*m_renderer).Initialize(); same thing as the arrow below
     m_renderer->Initialize(); //the shorthand
-    m_renderer->CreateWindow("Game Engine", 800, 600);
+    m_renderer->CreateWindow("Game Engine", 1200, 800);
+    //m_renderer->CreateWindow("Game Engine", 800, 600);
     m_input->Initialize();
     m_audio->Initialize();
     m_time = new Time();

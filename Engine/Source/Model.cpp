@@ -34,13 +34,23 @@ void Model::Draw(Renderer& renderer, const Transform transform)
 float Model::GetRadius()
 {
 	float radius = 0;
+	int num_points = 0;
+	//for (Vector2 point : m_points)
+	//{
+	//	float r = point.Length(); 
+	//	if (r > radius) {
+	//		radius = r;
+	//	}
+	//}
+
 	for (Vector2 point : m_points)
 	{
-		float r = point.Length(); 
-		if (r > radius) {
-			radius = r;
-		}
+		float r = point.Length();
+		num_points++;
+		radius += r;
 	}
+
+	radius /= num_points;
 
 	return radius;
 }

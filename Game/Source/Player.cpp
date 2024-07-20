@@ -26,25 +26,25 @@ void Player::Update(float dt)
 
 	
 	//fire
-	m_fireTimer -= dt;
-	if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_SPACE)&& m_fireTimer <= 0)
-	{
-		m_fireTimer = 0.2f;
-
-		std::vector<Vector2> points;
-		points.push_back(Vector2{ 5, 0 });
-		points.push_back(Vector2{ -5, -5 });
-		points.push_back(Vector2{ -5, 5 });
-		points.push_back(Vector2{ 5, 0 });
-
-		Model* model = new Model{ points, Color{ 1, 1, 0 } };
-		Transform transform{ m_transform.position, m_transform.rotation, 1.0f };
-
-		Bullet* bullet = new Bullet(400.0f, transform, model);
-		bullet->SetTag("Bullet");
-		bullet->SetLifespan(0.01f);
-		m_scene->AddActor(bullet);
-	}
+	//m_fireTimer -= dt;
+	//if (g_engine.GetInput().GetKeyDown(SDL_SCANCODE_SPACE)&& m_fireTimer <= 0)
+	//{
+	//	m_fireTimer = 0.2f;
+	//
+	//	std::vector<Vector2> points;
+	//	points.push_back(Vector2{ 5, 0 });
+	//	points.push_back(Vector2{ -5, -5 });
+	//	points.push_back(Vector2{ -5, 5 });
+	//	points.push_back(Vector2{ 5, 0 });
+	//
+	//	Model* model = new Model{ points, Color{ 1, 1, 0 } };
+	//	Transform transform{ m_transform.position, m_transform.rotation, 1.0f };
+	//
+	//	Bullet* bullet = new Bullet(400.0f, transform, model);
+	//	bullet->SetTag("Bullet");
+	//	bullet->SetLifespan(0.01f);
+	//	m_scene->AddActor(bullet);
+	//}
 
 
 
@@ -69,11 +69,15 @@ void Player::OnCollision(Actor* actor)
 		if (actor->GetTransform().scale > m_transform.scale)
 		{
 			m_destroyed = true;
+			*m_isAlive = false;
 		}
 		
 		if (actor->GetTransform().scale <= m_transform.scale)
 		{
-			m_transform.scale += (actor->GetTransform().scale / 2);
+			m_transform.scale += (actor->GetTransform().scale / 4);
+			*m_score += ((actor->GetTransform().scale)*10);
+			
+
 			actor->GetDestroyed() = true;
 		}
 			

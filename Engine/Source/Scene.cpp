@@ -47,10 +47,14 @@ void Scene::Update(float dt)
 		{
 			if (actor1 == actor2) continue; //skip the rest of the loop if they both pointers point to the same object
 
+			//Vector2 direction = actor1->GetTransform().position - actor2->GetTransform().position;
+			//float distance = direction.Length();
+
+			//float radius = actor1->m_model->GetRadius() + actor2->m_model->GetRadius();
+
 			Vector2 direction = actor1->GetTransform().position - actor2->GetTransform().position;
 			float distance = direction.Length();
-
-			float radius = actor1->m_model->GetRadius() + actor2->m_model->GetRadius();
+			float radius = actor1->GetRadius() + actor2->GetRadius();
 
 			if (distance <= radius)
 			{
