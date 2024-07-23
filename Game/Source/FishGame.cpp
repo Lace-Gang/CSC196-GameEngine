@@ -6,26 +6,34 @@
 #include "Fish.h"
 #include "GameData.h"
 #include "Text.h"
+#include "Pickup.h"
 
 #include<string>
 
 bool FishGame::Initialize()
 {
-    m_scene = new Scene();
+    m_scene = new Scene(this);
 	
+	g_engine.GetAudio().AddSound("crank.wav");
+	g_engine.GetAudio().AddSound("undersea.wav");
 
 
     return true;
 }
 
 void FishGame::Shutdown()
-{
+{ 
 }
 
 void FishGame::Update(float dt)
 {
-	
+	m_musicTimer += dt;
 
+	if (m_musicTimer >= 102)
+	{
+		m_musicTimer = 0;
+		g_engine.GetAudio().PlaySound("undersea.wav");
+	}
 	
 	switch (m_state)
 	{
@@ -48,8 +56,10 @@ void FishGame::Update(float dt)
 
 		case eState::StartGame:
 			m_score = 0;
+			m_lives = 1;
 			m_levelCap = 0;
 			scoreFont->Load("VCR_OSD_MONO.ttf", 20);
+			m_scene->RemoveAll();
 
 			m_state = eState::StartLevel;
 
@@ -60,11 +70,13 @@ void FishGame::Update(float dt)
 			break;
 
 
-
 		case eState::StartLevel:
-			m_scene = new Scene();
 			playerAlive = true;
-			m_levelCap += 1000;
+			m_levelCap = m_score + 1000;
+
+			m_scene->RemoveAll();
+
+			
 
 			{
 				m_state = eState::Game;
@@ -72,11 +84,13 @@ void FishGame::Update(float dt)
 				Model* enemyModel = new Model{ GameData::shipPoints, Color{1, 0, 1.0f} };
 
 
-				Transform transform{ Vector2{ randomf(0, 800), randomf(0,600)}, 0, 2 }; //randomf(0,5)
-				Player* player = new Player(300, transform, model, &m_score, &playerAlive);
+				Transform transform{ Vector2{ randomf(0, 800), randomf(0,600)}, 0.0f, 2 }; //randomf(0,5)
+				auto player = std::make_unique<Player>(300, transform, model, &m_score, &playerAlive, &m_lives);
 				player->SetTag("Player");
 				player->SetDamping(2.0f);
-				m_scene->AddActor(player);
+				m_scene->AddActor(std::move(player));
+
+				m_player = player.get();
 	
 			}
 
@@ -84,10 +98,17 @@ void FishGame::Update(float dt)
 			m_smallFishTimer = 5;
 			m_largeFishTimer = 10;
 			m_veryLargeFishTimer = 20;
+			m_lifeTimer = 30;
+			m_enemyTimer = 1;
 
 			//this has to be set up here of the game will crash, then it refreshes in the eState::Game to keep it acurate
 			m_ScoreMessage = m_sScore + std::to_string(m_score);
 			scoreText->Create(g_engine.GetRenderer(), m_ScoreMessage, Color{ 1, 1, 1, 1 });
+			m_LivesMessage = m_sLives + std::to_string(m_lives);
+			livesText->Create(g_engine.GetRenderer(), m_LivesMessage, Color{ 1, 1, 1, 1 });
+
+
+			m_stateTimer = 3;
 
 			m_state = eState::Game;
 			break;
@@ -98,10 +119,15 @@ void FishGame::Update(float dt)
 		
 			m_ScoreMessage = m_sScore + std::to_string(m_score);
 			scoreText->Create(g_engine.GetRenderer(), m_ScoreMessage, Color{ 1, 1, 1, 1 });
+			m_LivesMessage = m_sLives + std::to_string(m_lives);
+			livesText->Create(g_engine.GetRenderer(), m_LivesMessage, Color{ 1, 1, 1, 1 });
 
-			if (!playerAlive)
+			if (!playerAlive || m_lives <= 0)
 			{
-				m_state = eState::PlayerDead;
+				gameOverText->Create(g_engine.GetRenderer(), "GAME OVER", Color{ 1, 1, 1, 1 });
+				spaceToRestart->Create(g_engine.GetRenderer(), "Press Space to Restart", Color{ 1, 1, 1, 1 });
+
+				m_state = eState::GameOver;
 				break;
 			}
 
@@ -118,49 +144,91 @@ void FishGame::Update(float dt)
 			m_smallFishTimer += g_engine.GetTime().GetDeltaTime();
 			m_largeFishTimer += g_engine.GetTime().GetDeltaTime();
 			m_veryLargeFishTimer += g_engine.GetTime().GetDeltaTime();
+			m_lifeTimer += g_engine.GetTime().GetDeltaTime();
+			m_enemyTimer += g_engine.GetTime().GetDeltaTime();
 
 
 			Model* fishModel = new Model{ GameData::shipPoints, Color{0.1f, 0.1f, 1.0f} };
+			Model* lifeModel = new Model{ GameData::shipPoints, Color{1.0f, 1.0f, 0.1f} };
+			Model* enemyModel = new Model{ GameData::shipPoints, Color{1, 0, 1.0f} };
 			
 			if (m_fishTimer >= 5)
 			{
 				m_fishTimer = 0;
 			
-				Transform fishTransform{ Vector2{ 0.0f, randomf(0,600)}, 0, randomf(0,12) };
-				Fish* fish = new Fish(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
+				Transform fishTransform{ Vector2{ 0.0f, randomf(0, g_engine.GetRenderer().GetHeight())}, 0, randomf(0,12) };
+				auto fish = std::make_unique<Fish>(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
 				fish->SetTag("Fish");
-				m_scene->AddActor(fish);
+				m_scene->AddActor(std::move(fish));
 			}
 			
 			if (m_smallFishTimer >= 9)
 			{
 				m_smallFishTimer = 0;
 			
-				Transform fishTransform{ Vector2{ 0.0f, randomf(0,600)}, 0, randomf(0,4) };
-				Fish* fish = new Fish(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
+				Transform fishTransform{ Vector2{ 0.0f, randomf(0, g_engine.GetRenderer().GetHeight())}, 0, randomf(0,4) };
+				auto fish = std::make_unique < Fish>(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
 				fish->SetTag("Fish");
-				m_scene->AddActor(fish);
+				m_scene->AddActor(std::move(fish));
 			}
 			
 			if (m_largeFishTimer >= 23)
 			{
 				m_largeFishTimer = 0;
 			
-				Transform fishTransform{ Vector2{ 0.0f, randomf(0,600)}, 0, randomf(0,20) };
-				Fish* fish = new Fish(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
+				Transform fishTransform{ Vector2{ 0.0f, randomf(0, g_engine.GetRenderer().GetHeight())}, 0, randomf(0,20) };
+				auto fish = std::make_unique < Fish>(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
 				fish->SetTag("Fish");
-				m_scene->AddActor(fish);
+				m_scene->AddActor(std::move(fish));
 			}
 			
 			if (m_veryLargeFishTimer >= 45)
 			{
 				m_veryLargeFishTimer = 0;
 			
-				Transform fishTransform{ Vector2{ 0.0f, randomf(0,600)}, 0, randomf(21,32) };
-				Fish* fish = new Fish(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
+				Transform fishTransform{ Vector2{ 0.0f, randomf(0, g_engine.GetRenderer().GetHeight())}, 0, randomf(21,32) };
+				auto fish = std::make_unique <Fish>(randomf(50, 150), fishTransform, fishModel, g_engine.GetRenderer().GetWidth());
 				fish->SetTag("Fish");
-				m_scene->AddActor(fish);
+				m_scene->AddActor(std::move(fish));
 			}
+
+			//spawns extra life
+			if (m_lifeTimer >= 50)
+			{
+				m_lifeTimer = 0;
+
+				Player* player = m_scene->GetActor<Player>();
+				Transform fishTransform{ Vector2{ 0.0f, randomf(0, g_engine.GetRenderer().GetHeight())}, 0, randomf(0,player->GetTransform().scale - 1) };
+				auto fish = std::make_unique < Fish>(randomf(50, 150), fishTransform, lifeModel, g_engine.GetRenderer().GetWidth());
+				fish->SetTag("Life");
+				m_scene->AddActor(std::move(fish));
+			}
+
+			//spawns enemy
+			if (m_enemyTimer >= 34)
+			{
+				m_enemyTimer = 0;
+
+				Player* player = m_scene->GetActor<Player>();
+				Transform fishTransform{ Vector2{ 0.0f, randomf(0, g_engine.GetRenderer().GetHeight())}, 0, randomf((player->GetTransform().scale/2),player->GetTransform().scale)};
+				auto fish = std::make_unique < Fish>(randomf(50, 150), fishTransform, enemyModel, g_engine.GetRenderer().GetWidth());
+				fish->SetTag("Enemy");
+				m_scene->AddActor(std::move(fish));
+			}
+
+
+			//pickup spawn
+			if (m_pickupTimer <= -1)
+			{
+				m_pickupTimer = 0;
+
+				Transform fishTransform{ Vector2{ 0.0f, randomf(0,600)}, 0, randomf(0,12) };
+				auto pickup = std::make_unique < Pickup>(fishTransform, fishModel);
+				pickup->SetTag("pickup");
+				m_scene->AddActor(std::move(pickup));
+			}
+
+
 
 		}
 			break;
@@ -168,11 +236,14 @@ void FishGame::Update(float dt)
 
 
 		case eState::PlayerDead:
+			m_scene->RemoveAll();
+			m_stateTimer -= dt;
+			if (m_stateTimer <= 0)
+			{
+				//m_levelCap = 0;
+				m_state = eState::StartLevel;
 
-			gameOverText->Create(g_engine.GetRenderer(), "GAME OVER", Color{ 1, 1, 1, 1 });
-			spaceToRestart->Create(g_engine.GetRenderer(), "Press Space to Restart", Color{ 1, 1, 1, 1 });
-
-			m_state = eState::GameOver;
+			}
 
 
 			break;
@@ -263,6 +334,7 @@ void FishGame::Draw(Renderer& renderer)
 		m_scene->Draw(renderer);
 
 		scoreText->Draw(g_engine.GetRenderer(), 40, 40);
+		livesText->Draw(g_engine.GetRenderer(), 40, 65);
 
 		break;
 
@@ -279,6 +351,8 @@ void FishGame::Draw(Renderer& renderer)
 
 		//Draw text "Game Over'
 		scoreText->Draw(g_engine.GetRenderer(), 40, 40);
+		livesText->Draw(g_engine.GetRenderer(), 40, 65);
+
 		gameOverText->Draw(g_engine.GetRenderer(), g_engine.GetRenderer().GetWidth() * 0.35, g_engine.GetRenderer().GetHeight() / 2.5);
 		spaceToRestart->Draw(g_engine.GetRenderer(), g_engine.GetRenderer().GetWidth() * 0.37, g_engine.GetRenderer().GetHeight() / 1.5);
 
@@ -288,6 +362,8 @@ void FishGame::Draw(Renderer& renderer)
 		m_scene->Draw(renderer);
 
 		scoreText->Draw(g_engine.GetRenderer(), 40, 40);
+		livesText->Draw(g_engine.GetRenderer(), 40, 65);
+
 		gameOverText->Draw(g_engine.GetRenderer(), g_engine.GetRenderer().GetWidth() * 0.35, g_engine.GetRenderer().GetHeight() / 2.5);
 		spaceToRestart->Draw(g_engine.GetRenderer(), g_engine.GetRenderer().GetWidth() * 0.37, g_engine.GetRenderer().GetHeight() / 1.5);
 
@@ -306,4 +382,16 @@ void FishGame::Draw(Renderer& renderer)
 	//m_scene -> Draw(renderer);
 
 
+}
+
+void FishGame::OnPlayerDeath()
+{
+	m_lives--;
+	m_state = (m_lives == 0) ? eState::PlayerDead : eState::PlayerDead;   // eState::GameOver : eState::PlayerDead;
+}
+
+
+void FishGame::AddLives()
+{
+	m_lives++;
 }

@@ -1,6 +1,9 @@
 #include "Scene.h"
 #include "Actor.h"
 #include "Model.h"
+#include "Engine.h"
+#include "Particle.h"
+#include "Color.h"
 
 #include<algorithm> //for remove_if
 
@@ -8,9 +11,14 @@ void Scene::Update(float dt)
 {
 	//update
 
-	for (Actor* actor : m_actors)
+	for (auto& actor : m_actors)
 	{
 		actor->Update(dt);
+
+		//if (randomf(0, 10) > 9)
+		//{
+		//	AddParticles(actor);
+		//}
 	}
 
 	//destroy
@@ -25,27 +33,29 @@ void Scene::Update(float dt)
 		//itter++ means to do the ++ after the line (postfix) ++itter means do ++ IN the line (prefix)
 	}
 
-	//lambda expressions
-	//It moves the things it finds to the back of the list ig? Or something?
-	//Just . . . look up how these work later /lh
-	//ESPECIALLY if you want to try to USE this
-	//m_actors.erase(std::remove_if(m_actors.begin(), m_actors.end(), [](Actor* actor) { return actor->m_destroyed; }), m_actors.end()); (this is necessary in 2014 version of C++
-	// The std::remove_if algorithm reorders the elements in the range [m_actors.begin(), m_actors.end()]
-   // such that the elements that satisfy the predicate (i.e., those that should be removed) are moved
-   // to the end of the range. The algorithm returns an iterator to the beginning of the "removed" range,
-   // which is the new logical end of the container.
 
 	//this next line can be done in the 2022 verson of c++
-	std::erase_if(m_actors, [](Actor* actor) { return actor->m_destroyed; });
+	std::erase_if(m_actors, [](auto& actor) { return actor->m_destroyed; });
+
+	
+	//for (Particle* particle : m_particles)
+	//{
+	//	particle->time += g_engine.GetTime().GetDeltaTime();
+	//	if (particle->time >= 1.5)
+	//	{
+	//		particle->Update(g_engine.GetTime().GetDeltaTime());
+	//		particle->time = 0;
+	//	}
+	//}
 
 
 	//collision
-	for (Actor* actor1 : m_actors)
+	for (auto& actor1 : m_actors)
 	{
 		//collision
-		for (Actor* actor2 : m_actors)
+		for (auto& actor2 : m_actors)
 		{
-			if (actor1 == actor2) continue; //skip the rest of the loop if they both pointers point to the same object
+			if (actor1 == actor2 || actor1->m_destroyed || actor2->m_destroyed) continue; //skip the rest of the loop if they both pointers point to the same object
 
 			//Vector2 direction = actor1->GetTransform().position - actor2->GetTransform().position;
 			//float distance = direction.Length();
@@ -59,8 +69,8 @@ void Scene::Update(float dt)
 			if (distance <= radius)
 			{
 				//getting here means that a collision has occured.
-				actor1->OnCollision(actor2);
-				actor2->OnCollision(actor1);
+				actor1->OnCollision(actor2.get());
+				actor2->OnCollision(actor1.get());
 			}
 		}
 	}
@@ -69,14 +79,55 @@ void Scene::Update(float dt)
 
 void Scene::Draw(Renderer& renderer)
 {
-	for (Actor* actor : m_actors)
+	for (auto& actor : m_actors)
 	{
 		actor->Draw(renderer);
 	}
+	
+	//for (Particle* particle : m_particles)
+	//{
+	//	particle->Draw(renderer);
+	//}
+
+	//for particle in particles, draw particle
 }
 
-void Scene::AddActor(Actor* actor)
+void Scene::AddActor(std::unique_ptr<Actor> actor)
 {
 	actor->m_scene = this;
-	m_actors.push_back(actor);
+	m_actors.push_back(std::move(actor));
 }
+
+void Scene::RemoveAll()
+{
+	m_actors.clear();
+}
+
+//void Scene::AddParticles(Actor* actor)
+//{
+//	//Add particles here
+//
+//	float r = actor->GetTransform().rotation;
+//
+//	Vector2 location;
+//	location.x = actor->GetTransform().position.x + actor->GetRadius();
+//	location.y = actor->GetTransform().position.y;
+//
+//
+//	Vector2 direction;
+//	direction.x = 0;
+//	direction.y = 1;
+//
+//
+//
+//	//Particle* p = { location, direction, randomf(1, 5), Color{0.0f, 0.3f, 1.0f} };
+//	Particle p;
+//	p.position = location;
+//	p.velocity = direction;
+//	p.lifespan = randomf(1, 5);
+//	p.color = Color{ 0.0f, 0.3f, 1.0f };
+//
+//	
+//	m_particles.push_back(&p);
+//
+//}

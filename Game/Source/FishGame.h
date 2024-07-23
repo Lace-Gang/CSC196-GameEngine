@@ -3,6 +3,7 @@
 #include "Scene.h"
 #include "Font.h"
 #include "Text.h"
+#include "Player.h"
 
 
 #include <string>
@@ -27,21 +28,25 @@ public:
 public:
 	FishGame(Engine* engine) : Game{ engine } {}
 
+	//using the override keyword will tell you if you *are* overriding something in case of typos or something. Very helpful.
 	bool Initialize() override;
-
 	void Shutdown() override;
-
 	void Update(float dt) override;
-
 	void Draw(Renderer& renderer) override;
+
+	void OnPlayerDeath();
+	void AddLives();
 
 
 private:
 	eState m_state{ eState:: Title };
 	bool playerAlive = true;
+	Player* m_player = { nullptr };
 	
 	float m_transitionTime{ 0 };
 	int m_levelCap{ 0 };
+	float m_stateTimer{ 3 };
+	float m_musicTimer{ 103 };
 
 
 	float m_SpawnTimer{ 0 };
@@ -50,6 +55,9 @@ private:
 	float m_smallFishTimer{ 0 };
 	float m_largeFishTimer{ 0 };
 	float m_veryLargeFishTimer{ 0 };
+	float m_lifeTimer{ 0 };
+	float m_enemyTimer{ 0 };
+	float m_pickupTimer{ 0 };
 	
 	Font* titleFont = new Font();
 	Font* scoreFont = new Font();
@@ -60,6 +68,7 @@ private:
 	Text* spaceToStart = new Text(toStartFont);
 
 	Text* scoreText = new Text(scoreFont);
+	Text* livesText = new Text(scoreFont);
 
 	Text* gameOverText = new Text(titleFont);
 	Text* spaceToRestart = new Text(toStartFont);
@@ -73,7 +82,9 @@ private:
 
 
 	std::string m_sScore = "Score: ";
+	std::string m_sLives = "Lives: ";
 	std::string m_ScoreMessage = "";
+	std::string m_LivesMessage = "";
 	std::string m_transitionMessage_1 = "After finally becoming the largest fish in your pond ";
 	std::string m_transitionMessage_2 = "you finally make your way to cleaner ";
 	std::string m_transitionMessage_3 = "and most importantly DEEPER waters.";

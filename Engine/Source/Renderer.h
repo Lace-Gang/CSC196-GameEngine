@@ -23,6 +23,7 @@ public:
 	void DrawPoint(float x, float y);
 	void DrawRect(int x, int y, int w, int h);
 	void DrawRect(float x, float y, float w, float h);
+	void DrawCircle(float x, float y, float r);
 
 	int GetWidth() const { return m_width; }
 	int GetHeight() const { return m_height; }
